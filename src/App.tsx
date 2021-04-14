@@ -71,8 +71,7 @@ const FramePortal = React.memo(
         iframeRef.current?.contentDocument?.close();
       }
 
-
-      if (iframeRef.current?.contentDocument?.body.firstChild !== containerEl.current) {
+      if (!iframeRef.current?.contentDocument?.body.contains(containerEl.current)) {
         iframeRef.current?.contentDocument?.body.appendChild(containerEl.current);
       }
 
