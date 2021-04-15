@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import FramePortalProvider from './FramePortalProvider';
+//import FramePortalProvider from './FramePortalProvider';
 
 const initialContent = '<!DOCTYPE html><html><head></head><body></body></html>';
 
 interface FramePortalProps {
   children: any;
+  d?: (d: Document, w: Window) => void;
 }
 
 /**
@@ -15,6 +16,7 @@ interface FramePortalProps {
 const FramePortal = React.memo(
   function FramePortal(props: FramePortalProps) {
     const [frameRef, setFrameRef] = useState<HTMLIFrameElement | null>(null);
+    const hasRendered = useRef(false);
     const containerEl = useRef<HTMLDivElement>(
       document.createElement('div')
     );
@@ -40,17 +42,27 @@ const FramePortal = React.memo(
         frameRef?.contentDocument?.body.appendChild(containerEl.current);
       }
 
-      return (
-        <FramePortalProvider
-          window={frameRef?.contentWindow}
-          document={frameRef?.contentDocument}
-          container={containerEl.current}
-        >
-          {createPortal(props.children, containerEl.current)}
-        </FramePortalProvider>
-      );
+      if (!hasRendered.current && props.d) {
+        props.d(
+          frameRef.contentDocument as Document,
+          frameRef.contentWindow as Window,
+        );
+        hasRendered.current = true;
+      }
 
-    }, [frameRef, props.children]);
+      return createPortal(props.children, containerEl.current);
+
+      // return (
+      //   <FramePortalProvider
+      //     window={frameRef?.contentWindow}
+      //     document={frameRef?.contentDocument}
+      //     container={containerEl.current}
+      //   >
+      //     {createPortal(props.children, containerEl.current)}
+      //   </FramePortalProvider>
+      // );
+
+    }, [frameRef, props.children]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
       <iframe
@@ -58,6 +70,7 @@ const FramePortal = React.memo(
         title="iframe"
         scrolling="no"
         frameBorder="0"
+        width="100%"
       >
         {renderFrame()}
       </iframe>

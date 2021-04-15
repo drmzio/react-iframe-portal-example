@@ -18,9 +18,9 @@ const FramePortalProvider = React.memo(
       console.log(props.container, props.window, props.document);
 
       // Create a style tag.
-      const styleEl = document.createElement('style');
-      styleEl.textContent = 'body { margin: 0; background-color: red; }';
-      props.document?.head.appendChild(styleEl);
+      // const styleEl = document.createElement('style');
+      // styleEl.textContent = 'body { margin: 0; background-color: red; }';
+      // props.document?.head.appendChild(styleEl);
 
       // Create a script tag.
       const scriptEl = document.createElement('script');
