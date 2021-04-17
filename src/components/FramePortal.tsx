@@ -6,8 +6,11 @@ const initialContent = '<!DOCTYPE html><html><head></head><body></body></html>';
 
 interface FramePortalProps {
   children: any;
-  d?: (d: Document, w: Window) => void;
+  inject?: (d: Document, w: Window) => void;
+  style?: React.CSSProperties,
 }
+
+let hasRendered = false;
 
 /**
  * Renders the iframe itself and its initial contents to work properly.
@@ -16,7 +19,6 @@ interface FramePortalProps {
 const FramePortal = React.memo(
   function FramePortal(props: FramePortalProps) {
     const [frameRef, setFrameRef] = useState<HTMLIFrameElement | null>(null);
-    const hasRendered = useRef(false);
     const containerEl = useRef<HTMLDivElement>(
       document.createElement('div')
     );
@@ -42,25 +44,21 @@ const FramePortal = React.memo(
         frameRef?.contentDocument?.body.appendChild(containerEl.current);
       }
 
-      if (!hasRendered.current && props.d) {
-        props.d(
+      if (!hasRendered && props.inject) {
+        props.inject(
           frameRef.contentDocument as Document,
           frameRef.contentWindow as Window,
         );
-        hasRendered.current = true;
+
+        hasRendered = true;
       }
 
-      return createPortal(props.children, containerEl.current);
-
-      // return (
-      //   <FramePortalProvider
-      //     window={frameRef?.contentWindow}
-      //     document={frameRef?.contentDocument}
-      //     container={containerEl.current}
-      //   >
-      //     {createPortal(props.children, containerEl.current)}
-      //   </FramePortalProvider>
-      // );
+      return createPortal(
+        (typeof props.children === 'string')
+          ? (<div dangerouslySetInnerHTML={{ __html: props.children }} />)
+          : props.children,
+        containerEl.current
+      );
 
     }, [frameRef, props.children]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -71,6 +69,7 @@ const FramePortal = React.memo(
         scrolling="no"
         frameBorder="0"
         width="100%"
+        style={props.style}
       >
         {renderFrame()}
       </iframe>
